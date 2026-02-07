@@ -9,21 +9,55 @@
     <div class="card-body">
         <form id="create-case-form">
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">شماره پرونده</label>
                     <input type="text" class="form-control" name="شماره_پرونده" required>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">شماره کلاسه</label>
                     <input type="text" class="form-control" name="شماره_کلاسه">
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label">وضعیت پرونده</label>
+                    <select class="form-select" name="وضعیت">
+                        <option value="active" selected>فعال</option>
+                        <option value="closed">مختومه</option>
+                        <option value="transferring">در حال انتقال</option>
+                        <option value="pending">در دست اقدام</option>
+                    </select>
+                </div>
             </div>
+
+            <hr>
+            <h5 class="mb-3">مشخصات هویتی مالک (اختیاری)</h5>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">نام و نام خانوادگی</label>
+                    <input type="text" class="form-control" name="owner_name">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">کد ملی / شناسه</label>
+                    <input type="text" class="form-control" name="owner_national_id">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">شماره تماس</label>
+                    <input type="text" class="form-control" name="owner_phone">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">شماره تماس جایگزین</label>
+                    <input type="text" class="form-control" name="owner_alt_phone">
+                </div>
+            </div>
+            <hr>
+
             <div class="mb-3">
-                <label class="form-label">آدرس</label>
+                <label class="form-label">آدرس کامل ملک</label>
                 <input type="text" class="form-control" name="آدرس">
             </div>
             <div class="mb-3">
-                <label class="form-label">توضیحات</label>
+                <label class="form-label">توضیحات تکمیلی</label>
                 <textarea class="form-control" name="توضیحات" rows="3"></textarea>
             </div>
             <button type="submit" class="btn btn-primary">ثبت پرونده</button>

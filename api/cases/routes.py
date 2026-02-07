@@ -84,7 +84,8 @@ def get_cases():
                 Case.address.like(search),
                 Person.full_name.like(search),
                 Person.national_id.like(search),
-                Document.title.like(search)
+                Document.title.like(search),
+                Document.description.like(search)
             )
         ).distinct()
 
@@ -94,7 +95,11 @@ def get_cases():
 @cases_bp.route('/<int:case_id>', methods=['GET'])
 def get_case(case_id):
     case = Case.query.get_or_404(case_id)
-    return case_schema.dump(case)
+    result = case_schema.dump(case)
+    # Ensure ownerships are sorted by start_date descending
+    if 'سوابق_مالکیت' in result:
+        result['سوابق_مالکیت'].sort(key=lambda x: x.get('تاریخ_شروع') or '', reverse=True)
+    return result
 
 @cases_bp.route('/<int:case_id>', methods=['PUT'])
 def update_case(case_id):

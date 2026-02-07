@@ -42,6 +42,7 @@
                 <tr>
                     <th>نام مالک</th>
                     <th>کد ملی</th>
+                    <th>شماره تماس</th>
                     <th>تاریخ شروع مالکیت</th>
                     <th>تاریخ پایان</th>
                     <th>وضعیت</th>
@@ -59,7 +60,9 @@
                 <tr>
                     <th>عنوان</th>
                     <th>دسته‌بندی</th>
+                    <th>تاریخ سند</th>
                     <th>تاریخ ثبت</th>
+                    <th>توضیحات</th>
                     <th>عملیات</th>
                 </tr>
             </thead>
@@ -95,9 +98,15 @@
                         <label class="form-label">نام و نام خانوادگی</label>
                         <input type="text" class="form-control" name="نام_و_نام_خانوادگی" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">تلفن همراه</label>
-                        <input type="text" class="form-control" name="تلفن_همراه">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تلفن همراه</label>
+                            <input type="text" class="form-control" name="تلفن_همراه">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تلفن جایگزین (ثابت)</label>
+                            <input type="text" class="form-control" name="تلفن_ثابت">
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary">ثبت</button>
                 </form>
@@ -125,14 +134,25 @@
                         <label class="form-label">عنوان</label>
                         <input type="text" class="form-control" name="title" required>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تاریخ سند</label>
+                            <input type="date" class="form-control" name="document_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">دسته‌بندی</label>
+                            <select class="form-select" name="category">
+                                <option value="Deed">سند مالکیت</option>
+                                <option value="Contract">قرارداد</option>
+                                <option value="Map">نقشه</option>
+                                <option value="Correspondence">مکاتبات</option>
+                                <option value="Other">سایر</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label">دسته‌بندی</label>
-                        <select class="form-select" name="category">
-                            <option value="Deed">سند مالکیت</option>
-                            <option value="Contract">قرارداد</option>
-                            <option value="Map">نقشه</option>
-                            <option value="Other">سایر</option>
-                        </select>
+                        <label class="form-label">توضیحات</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">آپلود</button>
                 </form>
@@ -195,6 +215,7 @@
                             <tr>
                                 <td>${o['مالک']['نام_و_نام_خانوادگی']}</td>
                                 <td>${o['مالک']['کد_ملی']}</td>
+                            <td>${o['مالک']['تلفن_همراه'] || '-'} / ${o['مالک']['تلفن_ثابت'] || '-'}</td>
                                 <td>${o['تاریخ_شروع']}</td>
                                 <td>${o['تاریخ_پایان'] || '-'}</td>
                                 <td>${o['فعال'] ? '<span class="badge bg-success">فعال</span>' : '<span class="badge bg-secondary">غیرفعال</span>'}</td>
@@ -212,8 +233,10 @@
                     const row = `
                         <tr>
                             <td>${d['عنوان']}</td>
-                            <td>${d['دسته_بندی']}</td>
+                            <td><span class="badge bg-info text-dark">${d['دسته_بندی']}</span></td>
+                            <td>${d['تاریخ_سند'] || '-'}</td>
                             <td>${d['تاریخ_ثبت']}</td>
+                            <td><small>${d['توضیحات'] || ''}</small></td>
                             <td>
                                 <a href="/api/documents/${d['شناسه']}/download" class="btn btn-sm btn-outline-primary" target="_blank">دانلود</a>
                             </td>

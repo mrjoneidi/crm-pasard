@@ -55,6 +55,7 @@ class Document(db.Model):
     file_path = db.Column('مسیر_فایل', db.String(255), nullable=False)
     category = db.Column('دسته_بندی', db.String(50))
     created_at = db.Column('تاریخ_ثبت', db.DateTime, default=datetime.utcnow)
+    document_date = db.Column('تاریخ_سند', db.Date, nullable=True)
 
 class AuditLog(db.Model):
     __tablename__ = 'audit_logs'

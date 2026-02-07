@@ -47,12 +47,43 @@ def create_case():
         description: Error creating case
     """
     data = request.get_json()
+
+    # Extract owner data before validation as it's not part of Case model
+    owner_name = data.pop('owner_name', None)
+    owner_national_id = data.pop('owner_national_id', None)
+    owner_phone = data.pop('owner_phone', None)
+    owner_alt_phone = data.pop('owner_alt_phone', None)
+
     try:
         new_case = case_schema.load(data, session=db.session)
         db.session.add(new_case)
+        db.session.flush()
+
+        # Handle initial owner if provided
+        if owner_national_id:
+            person = Person.query.filter_by(national_id=owner_national_id).first()
+            if not person:
+                person = Person(
+                    full_name=owner_name,
+                    national_id=owner_national_id,
+                    phone=owner_phone,
+                    alt_phone=owner_alt_phone
+                )
+                db.session.add(person)
+                db.session.flush()
+
+            ownership = Ownership(
+                case_id=new_case.id,
+                person_id=person.id,
+                start_date=datetime.utcnow().date(),
+                is_current=True
+            )
+            db.session.add(ownership)
+
         db.session.commit()
         return case_schema.dump(new_case), 201
     except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
 @cases_bp.route('/', methods=['GET'])
@@ -84,7 +115,8 @@ def get_cases():
                 Case.address.like(search),
                 Person.full_name.like(search),
                 Person.national_id.like(search),
-                Document.title.like(search)
+                Document.title.like(search),
+                Document.description.like(search)
             )
         ).distinct()
 

@@ -42,6 +42,7 @@ class DocumentSchema(ma.SQLAlchemyAutoSchema):
     file_path = fields.Str(data_key='مسیر_فایل')
     category = fields.Str(data_key='دسته_بندی')
     created_at = fields.DateTime(data_key='تاریخ_ثبت')
+    document_date = fields.Date(data_key='تاریخ_سند', allow_none=True)
 
 class CaseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

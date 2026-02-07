@@ -42,6 +42,7 @@
                 <tr>
                     <th>نام مالک</th>
                     <th>کد ملی</th>
+                    <th>تلفن / تلفن جایگزین</th>
                     <th>تاریخ شروع مالکیت</th>
                     <th>تاریخ پایان</th>
                     <th>وضعیت</th>
@@ -59,6 +60,7 @@
                 <tr>
                     <th>عنوان</th>
                     <th>دسته‌بندی</th>
+                    <th>تاریخ سند</th>
                     <th>تاریخ ثبت</th>
                     <th>عملیات</th>
                 </tr>
@@ -99,6 +101,10 @@
                         <label class="form-label">تلفن همراه</label>
                         <input type="text" class="form-control" name="تلفن_همراه">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">تلفن جایگزین (ثابت)</label>
+                        <input type="text" class="form-control" name="تلفن_ثابت">
+                    </div>
                     <button type="submit" class="btn btn-primary">ثبت</button>
                 </form>
             </div>
@@ -124,6 +130,10 @@
                     <div class="mb-3">
                         <label class="form-label">عنوان</label>
                         <input type="text" class="form-control" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">تاریخ سند</label>
+                        <input type="date" class="form-control" name="document_date">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">دسته‌بندی</label>
@@ -195,6 +205,7 @@
                             <tr>
                                 <td>${o['مالک']['نام_و_نام_خانوادگی']}</td>
                                 <td>${o['مالک']['کد_ملی']}</td>
+                                <td>${o['مالک']['تلفن_همراه'] || '-'}<br><small class="text-muted">${o['مالک']['تلفن_ثابت'] || '-'}</small></td>
                                 <td>${o['تاریخ_شروع']}</td>
                                 <td>${o['تاریخ_پایان'] || '-'}</td>
                                 <td>${o['فعال'] ? '<span class="badge bg-success">فعال</span>' : '<span class="badge bg-secondary">غیرفعال</span>'}</td>
@@ -213,6 +224,7 @@
                         <tr>
                             <td>${d['عنوان']}</td>
                             <td>${d['دسته_بندی']}</td>
+                            <td>${d['تاریخ_سند'] || '-'}</td>
                             <td>${d['تاریخ_ثبت']}</td>
                             <td>
                                 <a href="/api/documents/${d['شناسه']}/download" class="btn btn-sm btn-outline-primary" target="_blank">دانلود</a>

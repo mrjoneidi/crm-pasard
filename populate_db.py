@@ -66,7 +66,8 @@ def populate():
                     description=fake.sentence(),
                     file_path=f"uploads/{uuid.uuid4()}.txt", # Fake path
                     category=random.choice(['Deed', 'Contract', 'Map', 'Permit']),
-                    created_at=fake.date_time_between(start_date=c.created_at)
+                    created_at=fake.date_time_between(start_date=c.created_at),
+                    document_date=fake.date_between(start_date='-5y', end_date='today')
                 )
                 db.session.add(doc)
         db.session.commit()

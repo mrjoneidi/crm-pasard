@@ -25,20 +25,30 @@ class TestSystem(unittest.TestCase):
         self.app_context.pop()
 
     def test_full_workflow(self):
-        # 1. Create Case
+        # 1. Create Case with Initial Owner
         print("1. Creating Case...")
         case_data = {
             "شماره_پرونده": "FULL-001",
             "شماره_کلاسه": "CLS-001",
             "وضعیت": "active",
             "آدرس": "Tehran",
-            "توضیحات": "Mother Case"
+            "توضیحات": "Mother Case",
+            "owner_name": "Initial Owner",
+            "owner_national_id": "1234567890",
+            "owner_phone": "09121111111",
+            "owner_alt_phone": "02188888888"
         }
         res = self.client.post('/api/cases/', json=case_data)
         self.assertEqual(res.status_code, 201)
-        case_id = res.get_json()['شناسه']
+        case_resp = res.get_json()
+        case_id = case_resp['شناسه']
 
-        # 2. Add Owner
+        # Verify Owner
+        self.assertEqual(len(case_resp['سوابق_مالکیت']), 1)
+        self.assertEqual(case_resp['سوابق_مالکیت'][0]['مالک']['نام_و_نام_خانوادگی'], "Initial Owner")
+        self.assertEqual(case_resp['سوابق_مالکیت'][0]['مالک']['تلفن_ثابت'], "02188888888")
+
+        # 2. Add Owner (Change Owner)
         print("2. Adding Owner...")
         owner_data = {
             "نام_و_نام_خانوادگی": "Reza Shah",
@@ -48,17 +58,20 @@ class TestSystem(unittest.TestCase):
         res = self.client.post(f'/api/cases/{case_id}/owners', json=owner_data)
         self.assertEqual(res.status_code, 200)
 
-        # 3. Upload Document
+        # 3. Upload Document with Date
         print("3. Uploading Document...")
         doc_data = {
             'file': (io.BytesIO(b"Important deed"), 'deed.txt'),
             'case_id': case_id,
             'title': 'Title Deed',
-            'category': 'Deed'
+            'category': 'Deed',
+            'document_date': '2023-01-01'
         }
         res = self.client.post('/api/documents/', data=doc_data, content_type='multipart/form-data')
         self.assertEqual(res.status_code, 201)
-        doc_id = res.get_json()['شناسه']
+        doc_resp = res.get_json()
+        doc_id = doc_resp['شناسه']
+        self.assertEqual(doc_resp['تاریخ_سند'], '2023-01-01')
 
         # 4. Subdivide
         print("4. Subdividing...")

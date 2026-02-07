@@ -4,6 +4,7 @@ from modules.models import Document, Case
 from modules.schemas import DocumentSchema
 from modules.utils import save_file
 import os
+from datetime import datetime
 
 documents_bp = Blueprint('documents', __name__)
 document_schema = DocumentSchema()
@@ -54,12 +55,21 @@ def upload_document():
     description = request.form.get('description')
     category = request.form.get('category')
 
+    document_date_str = request.form.get('document_date')
+    document_date = None
+    if document_date_str:
+        try:
+             document_date = datetime.strptime(document_date_str, '%Y-%m-%d').date()
+        except Exception:
+             pass
+
     new_doc = Document(
         case_id=case_id,
         title=title,
         description=description,
         file_path=file_path,
-        category=category
+        category=category,
+        document_date=document_date
     )
 
     db.session.add(new_doc)

@@ -5,3 +5,5 @@ crm.db
 uploads/
 .env
 venv/
+.idea/
+.vscode/

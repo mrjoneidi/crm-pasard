@@ -10,6 +10,31 @@ contracts_schema = LeaseContractSchema(many=True)
 
 @contracts_bp.route('/', methods=['POST'])
 def create_contract():
+    """
+    Create a new lease contract
+    ---
+    tags:
+      - Contracts
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            شناسه_پرونده:
+              type: integer
+            شناسه_مستاجر:
+              type: integer
+            مبلغ_اجاره_پایه:
+              type: number
+            دوره_پرداخت:
+              type: string
+              enum: [monthly, quarterly, yearly]
+    responses:
+      201:
+        description: Contract created
+    """
     data = request.get_json()
     try:
         new_contract = contract_schema.load(data, session=db.session)

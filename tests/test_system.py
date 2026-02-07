@@ -5,9 +5,15 @@ from modules.models import Case, Person, LeaseContract, Invoice, AuditLog
 import io
 from datetime import datetime, timedelta
 
+class TestConfig:
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    UPLOAD_FOLDER = 'tests/uploads'
+    TESTING = True
+
 class TestSystem(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
+        self.app = create_app(TestConfig)
         self.client = self.app.test_client()
         self.app_context = self.app.app_context()
         self.app_context.push()

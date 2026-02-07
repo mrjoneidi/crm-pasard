@@ -1,5 +1,6 @@
 from flask import Flask
 from config import Config
+from flasgger import Swagger
 import os
 
 def create_app(config_class=Config):
@@ -13,6 +14,8 @@ def create_app(config_class=Config):
     from modules.db import db, ma
     db.init_app(app)
     ma.init_app(app)
+
+    swagger = Swagger(app)
 
     # Register Audit Listeners
     from modules.audit import register_audit_listeners

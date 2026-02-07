@@ -11,6 +11,15 @@ invoices_schema = InvoiceSchema(many=True)
 
 @invoices_bp.route('/generate', methods=['POST'])
 def generate_invoices():
+    """
+    Generate due invoices for all active contracts
+    ---
+    tags:
+      - Invoices
+    responses:
+      201:
+        description: List of generated invoices
+    """
     # Simplified logic to create invoices for due contracts
     generated = []
     today = datetime.utcnow().date()

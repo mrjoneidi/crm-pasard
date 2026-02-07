@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">لیست پرونده‌ها</h1>
+    <a href="/cases/create" class="btn btn-primary">ایجاد پرونده جدید</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" id="search-input" class="form-control" placeholder="جستجو بر اساس شماره پرونده، نام مالک، آدرس...">
+            </div>
+            <div class="col-md-2">
+                <button onclick="loadCases()" class="btn btn-secondary w-100">جستجو</button>
+            </div>
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>شناسه</th>
+                    <th>شماره پرونده</th>
+                    <th>شماره کلاسه</th>
+                    <th>آدرس</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody id="cases-table-body">
+                <tr><td colspan="6" class="text-center">در حال بارگذاری...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function loadCases() {
+        const query = document.getElementById('search-input').value;
+        let url = '/api/cases/';
+        if (query) {
+            url += `?search=${encodeURIComponent(query)}`;
+        }
+
+        apiFetch(url)
+            .then(data => {
+                const tbody = document.getElementById('cases-table-body');
+                tbody.innerHTML = '';
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">موردی یافت نشد.</td></tr>';
+                    return;
+                }
+
+                data.forEach(c => {
+                    const row = `
+                        <tr>
+                            <td>${c['شناسه']}</td>
+                            <td>${c['شماره_پرونده']}</td>
+                            <td>${c['شماره_کلاسه'] || '-'}</td>
+                            <td>${c['آدرس'] || '-'}</td>
+                            <td><span class="badge bg-secondary">${c['وضعیت']}</span></td>
+                            <td>
+                                <a href="/cases/${c['شناسه']}" class="btn btn-sm btn-info text-white">مشاهده</a>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('cases-table-body').innerHTML = '<tr><td colspan="6" class="text-center text-danger">خطا در بارگذاری اطلاعات</td></tr>';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCases);
+</script>
+{% endblock %}

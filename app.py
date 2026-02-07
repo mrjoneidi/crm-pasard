@@ -34,6 +34,9 @@ def create_app(config_class=Config):
     from api.invoices.routes import invoices_bp
     app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
 
+    from web.routes import web_bp
+    app.register_blueprint(web_bp, url_prefix='/')
+
     return app
 
 if __name__ == '__main__':

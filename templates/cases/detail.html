@@ -1,0 +1,359 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">جزئیات پرونده <span id="case-header-number"></span></h1>
+    <a href="/cases" class="btn btn-secondary">بازگشت به لیست</a>
+</div>
+
+<!-- Case Info -->
+<div class="card mb-4">
+    <div class="card-header">اطلاعات پرونده</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6"><strong>شماره پرونده:</strong> <span id="info-case-number"></span></div>
+            <div class="col-md-6"><strong>شماره کلاسه:</strong> <span id="info-classification"></span></div>
+            <div class="col-md-12 mt-2"><strong>آدرس:</strong> <span id="info-address"></span></div>
+            <div class="col-md-12 mt-2"><strong>توضیحات:</strong> <span id="info-description"></span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" id="owners-tab" data-bs-toggle="tab" data-bs-target="#owners" type="button" role="tab">مالکین</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">اسناد</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="children-tab" data-bs-toggle="tab" data-bs-target="#children" type="button" role="tab">زیر پرونده‌ها (تفکیک)</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+    <!-- Owners Tab -->
+    <div class="tab-pane fade show active p-3 bg-white border border-top-0" id="owners" role="tabpanel">
+        <button class="btn btn-sm btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addOwnerModal">تغییر مالک</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>نام مالک</th>
+                    <th>کد ملی</th>
+                    <th>تاریخ شروع مالکیت</th>
+                    <th>تاریخ پایان</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody id="owners-table-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Documents Tab -->
+    <div class="tab-pane fade p-3 bg-white border border-top-0" id="documents" role="tabpanel">
+        <button class="btn btn-sm btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadDocModal">آپلود سند جدید</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>عنوان</th>
+                    <th>دسته‌بندی</th>
+                    <th>تاریخ ثبت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody id="docs-table-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Children Tab -->
+    <div class="tab-pane fade p-3 bg-white border border-top-0" id="children" role="tabpanel">
+        <button class="btn btn-sm btn-warning mb-3" data-bs-toggle="modal" data-bs-target="#subdivideModal">انجام تفکیک</button>
+        <div id="children-list"></div>
+    </div>
+</div>
+
+<!-- Modals -->
+
+<!-- Add Owner Modal -->
+<div class="modal fade" id="addOwnerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تغییر مالک</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-owner-form">
+                    <input type="hidden" name="case_id" value="{{ case_id }}">
+                    <div class="mb-3">
+                        <label class="form-label">کد ملی</label>
+                        <input type="text" class="form-control" name="کد_ملی" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">نام و نام خانوادگی</label>
+                        <input type="text" class="form-control" name="نام_و_نام_خانوادگی" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">تلفن همراه</label>
+                        <input type="text" class="form-control" name="تلفن_همراه">
+                    </div>
+                    <button type="submit" class="btn btn-primary">ثبت</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Doc Modal -->
+<div class="modal fade" id="uploadDocModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">آپلود سند</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="upload-doc-form">
+                    <input type="hidden" name="case_id" value="{{ case_id }}">
+                    <div class="mb-3">
+                        <label class="form-label">فایل</label>
+                        <input type="file" class="form-control" name="file" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">عنوان</label>
+                        <input type="text" class="form-control" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">دسته‌بندی</label>
+                        <select class="form-select" name="category">
+                            <option value="Deed">سند مالکیت</option>
+                            <option value="Contract">قرارداد</option>
+                            <option value="Map">نقشه</option>
+                            <option value="Other">سایر</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">آپلود</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subdivide Modal -->
+<div class="modal fade" id="subdivideModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تفکیک پرونده</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="subdivide-form">
+                    <div class="mb-3">
+                        <label class="form-label">علت تفکیک</label>
+                        <input type="text" class="form-control" name="reason" id="subdivide-reason" required>
+                    </div>
+                    <hr>
+                    <h6>زیر پرونده‌ها</h6>
+                    <div id="sub-cases-container">
+                        <!-- Dynamic inputs -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addSubCaseInput()">افزودن زیر پرونده</button>
+                    <br>
+                    <button type="submit" class="btn btn-warning">انجام تفکیک</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const CASE_ID = {{ case_id }};
+    let currentCaseDocs = [];
+
+    function loadCaseData() {
+        apiFetch(`/api/cases/${CASE_ID}`)
+            .then(data => {
+                // Info
+                document.getElementById('case-header-number').innerText = data['شماره_پرونده'];
+                document.getElementById('info-case-number').innerText = data['شماره_پرونده'];
+                document.getElementById('info-classification').innerText = data['شماره_کلاسه'];
+                document.getElementById('info-address').innerText = data['آدرس'];
+                document.getElementById('info-description').innerText = data['توضیحات'];
+
+                // Owners
+                const ownersBody = document.getElementById('owners-table-body');
+                ownersBody.innerHTML = '';
+                if(data['سوابق_مالکیت']) {
+                    data['سوابق_مالکیت'].forEach(o => {
+                        const row = `
+                            <tr>
+                                <td>${o['مالک']['نام_و_نام_خانوادگی']}</td>
+                                <td>${o['مالک']['کد_ملی']}</td>
+                                <td>${o['تاریخ_شروع']}</td>
+                                <td>${o['تاریخ_پایان'] || '-'}</td>
+                                <td>${o['فعال'] ? '<span class="badge bg-success">فعال</span>' : '<span class="badge bg-secondary">غیرفعال</span>'}</td>
+                            </tr>
+                        `;
+                        ownersBody.innerHTML += row;
+                    });
+                }
+
+                // Documents
+                currentCaseDocs = data['اسناد'] || [];
+                const docsBody = document.getElementById('docs-table-body');
+                docsBody.innerHTML = '';
+                currentCaseDocs.forEach(d => {
+                    const row = `
+                        <tr>
+                            <td>${d['عنوان']}</td>
+                            <td>${d['دسته_بندی']}</td>
+                            <td>${d['تاریخ_ثبت']}</td>
+                            <td>
+                                <a href="/api/documents/${d['شناسه']}/download" class="btn btn-sm btn-outline-primary" target="_blank">دانلود</a>
+                            </td>
+                        </tr>
+                    `;
+                    docsBody.innerHTML += row;
+                });
+
+                // Children
+                const childrenContainer = document.getElementById('children-list');
+                childrenContainer.innerHTML = '';
+                if (data['زیر_پرونده_ها'] && data['زیر_پرونده_ها'].length > 0) {
+                    let html = '<ul class="list-group">';
+                    data['زیر_پرونده_ها'].forEach(child => {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${child['شماره_پرونده']}</strong> - ${child['آدرس']}
+                                </div>
+                                <a href="/cases/${child['شناسه']}" class="btn btn-sm btn-info">مشاهده</a>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                    childrenContainer.innerHTML = html;
+                } else {
+                    childrenContainer.innerHTML = '<p class="text-muted">زیر پرونده‌ای وجود ندارد.</p>';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showAlert('خطا در دریافت اطلاعات پرونده', 'danger');
+            });
+    }
+
+    // Add Owner
+    document.getElementById('add-owner-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        apiFetch(`/api/cases/${CASE_ID}/owners`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            const modalEl = document.getElementById('addOwnerModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            showAlert('مالک تغییر کرد.');
+            loadCaseData();
+        }).catch(err => showAlert(err.message, 'danger'));
+    });
+
+    // Upload Document
+    document.getElementById('upload-doc-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        // Fetch wrapper uses JSON by default content-type header usually?
+        // Wait, app.js apiFetch doesn't set Content-Type unless options has it?
+        // Actually fetch() sets it automatically for FormData to multipart/form-data with boundary.
+        // So we just pass body.
+
+        fetch('/api/documents/', {
+            method: 'POST',
+            body: formData
+        }).then(res => {
+            if(!res.ok) throw new Error('Upload failed');
+            return res.json();
+        }).then(() => {
+            const modalEl = document.getElementById('uploadDocModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            showAlert('سند آپلود شد.');
+            loadCaseData();
+        }).catch(err => showAlert(err.message, 'danger'));
+    });
+
+    // Subdivide Logic
+    let subCaseCount = 0;
+    function addSubCaseInput() {
+        subCaseCount++;
+        const container = document.getElementById('sub-cases-container');
+        const div = document.createElement('div');
+        div.className = 'card card-body mb-2 bg-light';
+        div.setAttribute('data-id', subCaseCount);
+        div.innerHTML = `
+            <h6>زیر پرونده ${subCaseCount}</h6>
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <input type="text" class="form-control child-case-num" placeholder="شماره پرونده" required>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <input type="text" class="form-control child-class-num" placeholder="شماره کلاسه">
+                </div>
+                <div class="col-md-12 mb-2">
+                    <input type="text" class="form-control child-address" placeholder="آدرس">
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    document.getElementById('subdivide-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reason = document.getElementById('subdivide-reason').value;
+
+        const children = [];
+        const rows = document.querySelectorAll('#sub-cases-container > div');
+        rows.forEach(row => {
+            const num = row.querySelector('.child-case-num').value;
+            const cls = row.querySelector('.child-class-num').value;
+            const addr = row.querySelector('.child-address').value;
+
+            if(num) {
+                children.push({
+                    'شماره_پرونده': num,
+                    'شماره_کلاسه': cls,
+                    'آدرس': addr
+                });
+            }
+        });
+
+        apiFetch(`/api/cases/${CASE_ID}/subdivide`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason, children: children })
+        }).then(() => {
+            const modalEl = document.getElementById('subdivideModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            showAlert('تفکیک انجام شد.');
+            loadCaseData();
+        }).catch(err => showAlert(err.message, 'danger'));
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCaseData();
+        addSubCaseInput(); // Add one default input
+    });
+</script>
+{% endblock %}

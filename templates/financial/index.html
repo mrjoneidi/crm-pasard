@@ -1,0 +1,172 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">امور مالی و قراردادها</h1>
+    <div>
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createContractModal">ثبت قرارداد جدید</button>
+        <button class="btn btn-success" onclick="generateInvoices()">صدور صورتحساب‌های دوره‌ای</button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">تعداد بدهکاران</h5>
+                <h3 id="stat-debtors">...</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">مجموع بدهی</h5>
+                <h3 id="stat-debt">...</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="card">
+    <div class="card-header">لیست صورتحساب‌ها</div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>شماره صورتحساب</th>
+                    <th>شناسه قرارداد</th>
+                    <th>تاریخ سررسید</th>
+                    <th>مبلغ</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody id="invoices-table-body">
+                <tr><td colspan="5" class="text-center">در حال بارگذاری...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Contract Modal -->
+<div class="modal fade" id="createContractModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ثبت قرارداد جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="create-contract-form">
+                    <div class="mb-3">
+                        <label class="form-label">شناسه پرونده</label>
+                        <input type="number" class="form-control" name="شناسه_پرونده" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">شناسه مستاجر (شخص)</label>
+                        <input type="number" class="form-control" name="شناسه_مستاجر" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تاریخ شروع</label>
+                            <input type="date" class="form-control" name="تاریخ_شروع" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تاریخ پایان</label>
+                            <input type="date" class="form-control" name="تاریخ_پایان" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">مبلغ اجاره پایه (ریال)</label>
+                        <input type="number" class="form-control" name="مبلغ_اجاره_پایه" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">دوره پرداخت</label>
+                        <select class="form-select" name="دوره_پرداخت">
+                            <option value="monthly">ماهانه</option>
+                            <option value="quarterly">سه ماهه</option>
+                            <option value="yearly">سالانه</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">ثبت قرارداد</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function loadFinancialData() {
+        // Load Invoices
+        apiFetch('/api/invoices/')
+            .then(data => {
+                const tbody = document.getElementById('invoices-table-body');
+                tbody.innerHTML = '';
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">موردی یافت نشد.</td></tr>';
+                    return;
+                }
+
+                data.forEach(inv => {
+                    const row = `
+                        <tr>
+                            <td>${inv['شماره_صورتحساب']}</td>
+                            <td>${inv['شناسه_قرارداد']}</td>
+                            <td>${inv['تاریخ_سررسید']}</td>
+                            <td>${inv['مبلغ'].toLocaleString('fa-IR')} ریال</td>
+                            <td>
+                                ${inv['وضعیت'] === 'unpaid' ? '<span class="badge bg-danger">پرداخت نشده</span>' : '<span class="badge bg-success">پرداخت شده</span>'}
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(err => console.error(err));
+
+        // Load Stats
+        apiFetch('/api/invoices/reports/financial')
+            .then(data => {
+                document.getElementById('stat-debtors').innerText = data['تعداد_بدهکاران'];
+                document.getElementById('stat-debt').innerText = (data['مجموع_بدهی'] || 0).toLocaleString('fa-IR') + ' ریال';
+            })
+            .catch(err => console.error(err));
+    }
+
+    function generateInvoices() {
+        if(!confirm('آیا از صدور صورتحساب برای قراردادهای سررسید شده اطمینان دارید؟')) return;
+
+        apiFetch('/api/invoices/generate', { method: 'POST' })
+            .then(data => {
+                showAlert(`${data.length} صورتحساب جدید صادر شد.`);
+                loadFinancialData();
+            })
+            .catch(err => showAlert(err.message, 'danger'));
+    }
+
+    // Create Contract
+    document.getElementById('create-contract-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        apiFetch('/api/contracts/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            const modalEl = document.getElementById('createContractModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            showAlert('قرارداد با موفقیت ثبت شد.');
+            // Typically redirect or refresh, but here just show alert
+        }).catch(err => showAlert(err.message, 'danger'));
+    });
+
+    document.addEventListener('DOMContentLoaded', loadFinancialData);
+</script>
+{% endblock %}

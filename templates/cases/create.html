@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">ایجاد پرونده جدید</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form id="create-case-form">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">شماره پرونده</label>
+                    <input type="text" class="form-control" name="شماره_پرونده" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">شماره کلاسه</label>
+                    <input type="text" class="form-control" name="شماره_کلاسه">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">آدرس</label>
+                <input type="text" class="form-control" name="آدرس">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">توضیحات</label>
+                <textarea class="form-control" name="توضیحات" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">ثبت پرونده</button>
+            <a href="/cases" class="btn btn-secondary">بازگشت</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('create-case-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        apiFetch('/api/cases/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => {
+            showAlert('پرونده با موفقیت ایجاد شد.');
+            setTimeout(() => window.location.href = '/cases', 1000);
+        })
+        .catch(err => {
+            showAlert(err.message, 'danger');
+        });
+    });
+</script>
+{% endblock %}

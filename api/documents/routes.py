@@ -10,6 +10,27 @@ document_schema = DocumentSchema()
 
 @documents_bp.route('/', methods=['POST'])
 def upload_document():
+    """
+    Upload a document for a case
+    ---
+    tags:
+      - Documents
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+      - name: case_id
+        in: formData
+        type: integer
+        required: true
+      - name: title
+        in: formData
+        type: string
+    responses:
+      201:
+        description: Document uploaded
+    """
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 

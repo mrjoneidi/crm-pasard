@@ -3,3 +3,5 @@ flask-sqlalchemy
 flask-marshmallow
 marshmallow-sqlalchemy
 psycopg2-binary
+flasgger
+faker

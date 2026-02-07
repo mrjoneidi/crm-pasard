@@ -13,6 +13,39 @@ person_schema = PersonSchema()
 
 @cases_bp.route('/', methods=['POST'])
 def create_case():
+    """
+    Create a new Case (Parvandeh)
+    ---
+    tags:
+      - Cases
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            شماره_پرونده:
+              type: string
+              example: "1001"
+            شماره_کلاسه:
+              type: string
+              example: "C1001"
+            وضعیت:
+              type: string
+              example: "active"
+            آدرس:
+              type: string
+              example: "Tehran, Valiasr St"
+            توضیحات:
+              type: string
+              example: "New case description"
+    responses:
+      201:
+        description: Case created successfully
+      400:
+        description: Error creating case
+    """
     data = request.get_json()
     try:
         new_case = case_schema.load(data, session=db.session)
@@ -24,6 +57,20 @@ def create_case():
 
 @cases_bp.route('/', methods=['GET'])
 def get_cases():
+    """
+    List all Cases with optional search
+    ---
+    tags:
+      - Cases
+    parameters:
+      - name: search
+        in: query
+        type: string
+        description: Search term for case number, owner name, address, etc.
+    responses:
+      200:
+        description: List of cases
+    """
     search_term = request.args.get('search')
     query = Case.query
 
@@ -63,6 +110,34 @@ def update_case(case_id):
 
 @cases_bp.route('/<int:case_id>/owners', methods=['POST'])
 def add_owner(case_id):
+    """
+    Add a new owner to a case, archiving the previous one
+    ---
+    tags:
+      - Cases
+    parameters:
+      - name: case_id
+        in: path
+        type: integer
+        required: true
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            نام_و_نام_خانوادگی:
+              type: string
+            کد_ملی:
+              type: string
+            تلفن_همراه:
+              type: string
+    responses:
+      200:
+        description: Owner added successfully
+      400:
+        description: Error
+    """
     case = Case.query.get_or_404(case_id)
     data = request.get_json()
 
@@ -115,6 +190,41 @@ def add_owner(case_id):
 
 @cases_bp.route('/<int:case_id>/subdivide', methods=['POST'])
 def subdivide_case(case_id):
+    """
+    Subdivide a case into multiple child cases
+    ---
+    tags:
+      - Cases
+    parameters:
+      - name: case_id
+        in: path
+        type: integer
+        required: true
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            reason:
+              type: string
+            children:
+              type: array
+              items:
+                type: object
+                properties:
+                  شماره_پرونده:
+                    type: string
+                  شماره_کلاسه:
+                    type: string
+                  docs_to_transfer:
+                    type: array
+                    items:
+                      type: integer
+    responses:
+      201:
+        description: Sub-cases created successfully
+    """
     parent_case = Case.query.get_or_404(case_id)
     data = request.get_json()
 

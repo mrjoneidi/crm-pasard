@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from modules.db import db
 from modules.models import Case, Person, Ownership, Document
 from modules.schemas import CaseSchema, PersonSchema, OwnershipSchema
+from modules.utils import jalali_to_gregorian
 from sqlalchemy import or_
 from datetime import datetime
 
@@ -54,6 +55,13 @@ def create_case():
     owner_phone = data.pop('owner_phone', None)
     owner_alt_phone = data.pop('owner_alt_phone', None)
 
+    # Ownership dates (Jalali)
+    owner_start_date_str = data.pop('owner_start_date', None)
+    owner_end_date_str = data.pop('owner_end_date', None)
+    is_current_owner = data.pop('is_current_owner', True) # Default to true if not specified
+    if is_current_owner == 'on': # HTML checkbox returns 'on'
+         is_current_owner = True
+
     try:
         new_case = case_schema.load(data, session=db.session)
         db.session.add(new_case)
@@ -72,11 +80,19 @@ def create_case():
                 db.session.add(person)
                 db.session.flush()
 
+            start_date = jalali_to_gregorian(owner_start_date_str) if owner_start_date_str else datetime.utcnow().date()
+            end_date = jalali_to_gregorian(owner_end_date_str) if owner_end_date_str else None
+
+            # If explicit end date provided, ensure is_current matches logic
+            if end_date:
+                 is_current_owner = False
+
             ownership = Ownership(
                 case_id=new_case.id,
                 person_id=person.id,
-                start_date=datetime.utcnow().date(),
-                is_current=True
+                start_date=start_date,
+                end_date=end_date,
+                is_current=is_current_owner
             )
             db.session.add(ownership)
 
@@ -201,18 +217,31 @@ def add_owner(case_id):
         except Exception as e:
             return jsonify({'error': f"Error creating person: {str(e)}"}), 400
 
-    # End current ownerships
-    current_ownerships = Ownership.query.filter_by(case_id=case.id, is_current=True).all()
-    for o in current_ownerships:
-        o.is_current = False
-        o.end_date = datetime.utcnow().date()
+    # Handle dates
+    start_date_str = data.get('start_date')
+    end_date_str = data.get('end_date')
+    is_current = data.get('is_current', True)
 
-    # Add new ownership
+    start_date = jalali_to_gregorian(start_date_str) if start_date_str else datetime.utcnow().date()
+    end_date = jalali_to_gregorian(end_date_str) if end_date_str else None
+
+    # Logic: If we are adding a CURRENT owner, we must archive previous current owners.
+    # If we are adding a HISTORICAL owner (is_current=False), we don't touch others.
+
+    if is_current:
+        current_ownerships = Ownership.query.filter_by(case_id=case.id, is_current=True).all()
+        for o in current_ownerships:
+            o.is_current = False
+            # If no end date was set, set it to now (or new start date)
+            if not o.end_date:
+                o.end_date = start_date
+
     new_ownership = Ownership(
         case_id=case.id,
         person_id=person.id,
-        start_date=datetime.utcnow().date(),
-        is_current=True
+        start_date=start_date,
+        end_date=end_date,
+        is_current=is_current
     )
     db.session.add(new_ownership)
     db.session.commit()

@@ -4,6 +4,7 @@ from modules.db import db
 from modules.models import Case, Person, LeaseContract, Invoice, AuditLog
 import io
 from datetime import datetime, timedelta
+import jdatetime
 
 class TestConfig:
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
@@ -36,7 +37,8 @@ class TestSystem(unittest.TestCase):
             "owner_name": "Initial Owner",
             "owner_national_id": "1234567890",
             "owner_phone": "09121111111",
-            "owner_alt_phone": "02188888888"
+            "owner_alt_phone": "02188888888",
+            "owner_start_date": "1402/01/01"
         }
         res = self.client.post('/api/cases/', json=case_data)
         self.assertEqual(res.status_code, 201)
@@ -65,13 +67,13 @@ class TestSystem(unittest.TestCase):
             'case_id': case_id,
             'title': 'Title Deed',
             'category': 'Deed',
-            'document_date': '2023-01-01'
+            'document_date': '1402/05/20'
         }
         res = self.client.post('/api/documents/', data=doc_data, content_type='multipart/form-data')
         self.assertEqual(res.status_code, 201)
         doc_resp = res.get_json()
         doc_id = doc_resp['شناسه']
-        self.assertEqual(doc_resp['تاریخ_سند'], '2023-01-01')
+        self.assertEqual(doc_resp['تاریخ_سند'], '1402/05/20')
 
         # 4. Subdivide
         print("4. Subdividing...")
@@ -103,11 +105,16 @@ class TestSystem(unittest.TestCase):
         db.session.commit()
         tenant_id = tenant.id
 
+        # Use dates that cover "today" to generate due invoices
+        today_j = jdatetime.date.today()
+        start_j = today_j - timedelta(days=60)
+        end_j = today_j + timedelta(days=300)
+
         contract_data = {
             "شناسه_پرونده": child_id,
             "شناسه_مستاجر": tenant_id,
-            "تاریخ_شروع": datetime.utcnow().date().isoformat(),
-            "تاریخ_پایان": (datetime.utcnow() + timedelta(days=365)).date().isoformat(),
+            "تاریخ_شروع": start_j.strftime("%Y/%m/%d"),
+            "تاریخ_پایان": end_j.strftime("%Y/%m/%d"),
             "مبلغ_اجاره_پایه": 5000000,
             "دوره_پرداخت": "monthly"
         }

@@ -1,6 +1,19 @@
 from modules.db import ma
 from modules.models import Case, Person, Ownership, Document, AuditLog, LeaseContract, Invoice
-from marshmallow import fields
+from marshmallow import fields, pre_load, post_dump
+from modules.utils import gregorian_to_jalali, jalali_to_gregorian
+
+class JalaliDateField(fields.Field):
+    """Custom field to handle Jalali dates."""
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return gregorian_to_jalali(value)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if value is None:
+            return None
+        return jalali_to_gregorian(value)
 
 class PersonSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -23,8 +36,8 @@ class OwnershipSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Int(data_key='شناسه')
     case_id = fields.Int(data_key='شناسه_پرونده')
     person_id = fields.Int(data_key='شناسه_شخص')
-    start_date = fields.Date(data_key='تاریخ_شروع')
-    end_date = fields.Date(data_key='تاریخ_پایان', allow_none=True)
+    start_date = JalaliDateField(data_key='تاریخ_شروع')
+    end_date = JalaliDateField(data_key='تاریخ_پایان', allow_none=True)
     is_current = fields.Bool(data_key='فعال')
 
     person = fields.Nested(PersonSchema, dump_only=True, data_key='مالک')
@@ -42,7 +55,7 @@ class DocumentSchema(ma.SQLAlchemyAutoSchema):
     file_path = fields.Str(data_key='مسیر_فایل')
     category = fields.Str(data_key='دسته_بندی')
     created_at = fields.DateTime(data_key='تاریخ_ثبت')
-    document_date = fields.Date(data_key='تاریخ_سند', allow_none=True)
+    document_date = JalaliDateField(data_key='تاریخ_سند', allow_none=True)
 
 class CaseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -61,7 +74,6 @@ class CaseSchema(ma.SQLAlchemyAutoSchema):
 
     documents = fields.Nested(DocumentSchema, many=True, dump_only=True, data_key='اسناد')
     ownerships = fields.Nested(OwnershipSchema, many=True, dump_only=True, data_key='سوابق_مالکیت')
-    # Removed exclude=('parent',) to fix the error. Can handle recursion depth if needed later.
     children = fields.Nested('CaseSchema', many=True, dump_only=True, data_key='زیر_پرونده_ها')
 
 class AuditLogSchema(ma.SQLAlchemyAutoSchema):
@@ -87,7 +99,7 @@ class InvoiceSchema(ma.SQLAlchemyAutoSchema):
     contract_id = fields.Int(data_key='شناسه_قرارداد')
     invoice_number = fields.Str(data_key='شماره_صورتحساب')
     amount = fields.Float(data_key='مبلغ')
-    due_date = fields.Date(data_key='تاریخ_سررسید')
+    due_date = JalaliDateField(data_key='تاریخ_سررسید')
     status = fields.Str(data_key='وضعیت')
     created_at = fields.DateTime(data_key='تاریخ_صدور')
 
@@ -100,8 +112,8 @@ class LeaseContractSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Int(data_key='شناسه')
     case_id = fields.Int(data_key='شناسه_پرونده')
     tenant_id = fields.Int(data_key='شناسه_مستاجر')
-    start_date = fields.Date(data_key='تاریخ_شروع')
-    end_date = fields.Date(data_key='تاریخ_پایان')
+    start_date = JalaliDateField(data_key='تاریخ_شروع')
+    end_date = JalaliDateField(data_key='تاریخ_پایان')
     base_rent = fields.Float(data_key='مبلغ_اجاره_پایه')
     payment_period = fields.Str(data_key='دوره_پرداخت')
     annual_increase_percent = fields.Float(data_key='درصد_افزایش_سالانه')

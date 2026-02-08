@@ -5,3 +5,4 @@ marshmallow-sqlalchemy
 psycopg2-binary
 flasgger
 faker
+jdatetime

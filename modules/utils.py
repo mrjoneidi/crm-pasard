@@ -1,27 +1,34 @@
+
 import os
 import uuid
-from werkzeug.utils import secure_filename
 from flask import current_app
+from datetime import datetime, date
+import jdatetime
 
-def generate_unique_filename(filename):
-    """Generates a unique filename using UUID."""
-    ext = os.path.splitext(filename)[1]
-    unique_name = f"{uuid.uuid4()}{ext}"
-    return unique_name
-
-def save_file(file_storage):
-    """Saves a file to the configured upload folder and returns the relative path."""
-    if not file_storage:
+def save_file(file):
+    if not file:
         return None
 
-    filename = secure_filename(file_storage.filename)
-    unique_filename = generate_unique_filename(filename)
-
+    filename = f"{uuid.uuid4()}_{file.filename}"
     upload_folder = current_app.config['UPLOAD_FOLDER']
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
+    file_path = os.path.join(upload_folder, filename)
+    file.save(file_path)
+    return filename # Return relative path for DB
 
-    file_path = os.path.join(upload_folder, unique_filename)
-    file_storage.save(file_path)
+def gregorian_to_jalali(date_obj):
+    """Converts a Gregorian date object to a Jalali string (YYYY/MM/DD)."""
+    if not date_obj:
+        return None
+    j_date = jdatetime.date.fromgregorian(date=date_obj)
+    return j_date.strftime('%Y/%m/%d')
 
-    return unique_filename
+def jalali_to_gregorian(jalali_str):
+    """Converts a Jalali date string (YYYY/MM/DD or YYYY-MM-DD) to a Gregorian date object."""
+    if not jalali_str:
+        return None
+    try:
+        jalali_str = jalali_str.replace('-', '/')
+        year, month, day = map(int, jalali_str.split('/'))
+        return jdatetime.date(year, month, day).togregorian()
+    except Exception:
+        return None

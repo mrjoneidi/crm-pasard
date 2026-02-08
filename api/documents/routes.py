@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from modules.db import db
 from modules.models import Document, Case
 from modules.schemas import DocumentSchema
-from modules.utils import save_file
+from modules.utils import save_file, jalali_to_gregorian
 import os
 from datetime import datetime
 
@@ -58,10 +58,14 @@ def upload_document():
     document_date_str = request.form.get('document_date')
     document_date = None
     if document_date_str:
-        try:
-             document_date = datetime.strptime(document_date_str, '%Y-%m-%d').date()
-        except Exception:
-             pass
+        # Try Jalali conversion first
+        document_date = jalali_to_gregorian(document_date_str)
+        if not document_date:
+            try:
+                # Fallback to standard gregorian if needed
+                document_date = datetime.strptime(document_date_str, '%Y-%m-%d').date()
+            except Exception:
+                pass
 
     new_doc = Document(
         case_id=case_id,

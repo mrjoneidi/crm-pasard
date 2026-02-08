@@ -1,3 +1,4 @@
+import sys
 from app import create_app
 from modules.db import db
 from modules.models import Case, Person, Ownership, Document, LeaseContract, Invoice
@@ -6,14 +7,29 @@ import random
 from datetime import datetime, timedelta
 import uuid
 
-fake = Faker(['fa_IR']) # Use Persian locale
-
-def populate():
+def init_db():
+    """Create database tables."""
     app = create_app()
     with app.app_context():
-        # Create tables if they don't exist
         db.create_all()
+        print("Database tables created successfully.")
 
+def drop_db():
+    """Drop all database tables."""
+    app = create_app()
+    with app.app_context():
+        confirm = input("WARNING: This will delete all data. Are you sure? (y/N): ")
+        if confirm.lower() == 'y':
+            db.drop_all()
+            print("Database dropped successfully.")
+        else:
+            print("Operation cancelled.")
+
+def populate_db():
+    """Populate database with sample data."""
+    app = create_app()
+    with app.app_context():
+        fake = Faker(['fa_IR'])
         print("Populating database with sample data...")
 
         # Create People
@@ -75,7 +91,6 @@ def populate():
         # Create Contracts for some cases
         for c in cases[:5]: # First 5 cases have tenants
             tenant = random.choice(people)
-            # Ensure tenant is not owner (simplified check)
 
             contract = LeaseContract(
                 case_id=c.id,
@@ -91,5 +106,17 @@ def populate():
 
         print("Database populated successfully!")
 
-if __name__ == '__main__':
-    populate()
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python manage.py [init|drop|populate]")
+        sys.exit(1)
+
+    command = sys.argv[1]
+    if command == 'init':
+        init_db()
+    elif command == 'drop':
+        drop_db()
+    elif command == 'populate':
+        populate_db()
+    else:
+        print(f"Unknown command: {command}")

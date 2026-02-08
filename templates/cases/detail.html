@@ -8,11 +8,15 @@
 
 <!-- Case Info -->
 <div class="card mb-4">
-    <div class="card-header">اطلاعات پرونده</div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>اطلاعات پرونده</span>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCaseModal">ویرایش اطلاعات</button>
+    </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6"><strong>شماره پرونده:</strong> <span id="info-case-number"></span></div>
             <div class="col-md-6"><strong>شماره کلاسه:</strong> <span id="info-classification"></span></div>
+            <div class="col-md-6 mt-2"><strong>وضعیت:</strong> <span id="info-status"></span></div>
             <div class="col-md-12 mt-2"><strong>آدرس:</strong> <span id="info-address"></span></div>
             <div class="col-md-12 mt-2"><strong>توضیحات:</strong> <span id="info-description"></span></div>
         </div>
@@ -77,6 +81,48 @@
 </div>
 
 <!-- Modals -->
+
+<!-- Edit Case Modal -->
+<div class="modal fade" id="editCaseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش اطلاعات پرونده</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-case-form">
+                    <div class="mb-3">
+                        <label class="form-label">شماره پرونده</label>
+                        <input type="text" class="form-control" name="شماره_پرونده" id="edit-case-num" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">شماره کلاسه</label>
+                        <input type="text" class="form-control" name="شماره_کلاسه" id="edit-class-num">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">وضعیت</label>
+                        <select class="form-select" name="وضعیت" id="edit-status">
+                            <option value="active">فعال</option>
+                            <option value="closed">مختومه</option>
+                            <option value="transferring">در حال انتقال</option>
+                            <option value="pending">در دست اقدام</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">آدرس</label>
+                        <input type="text" class="form-control" name="آدرس" id="edit-address">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">توضیحات</label>
+                        <textarea class="form-control" name="توضیحات" id="edit-desc" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Add Owner Modal -->
 <div class="modal fade" id="addOwnerModal" tabindex="-1">
@@ -218,8 +264,16 @@
                 document.getElementById('case-header-number').innerText = data['شماره_پرونده'];
                 document.getElementById('info-case-number').innerText = data['شماره_پرونده'];
                 document.getElementById('info-classification').innerText = data['شماره_کلاسه'];
+                document.getElementById('info-status').innerText = data['وضعیت'];
                 document.getElementById('info-address').innerText = data['آدرس'];
                 document.getElementById('info-description').innerText = data['توضیحات'];
+
+                // Populate Edit Modal
+                document.getElementById('edit-case-num').value = data['شماره_پرونده'];
+                document.getElementById('edit-class-num').value = data['شماره_کلاسه'];
+                document.getElementById('edit-status').value = data['وضعیت'];
+                document.getElementById('edit-address').value = data['آدرس'];
+                document.getElementById('edit-desc').value = data['توضیحات'];
 
                 // Owners
                 const ownersBody = document.getElementById('owners-table-body');
@@ -245,9 +299,16 @@
                 const docsBody = document.getElementById('docs-table-body');
                 docsBody.innerHTML = '';
                 currentCaseDocs.forEach(d => {
+                    // Check extension for image preview
+                    let preview = '';
+                    const ext = d['مسیر_فایل'] ? d['مسیر_فایل'].split('.').pop().toLowerCase() : '';
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                         preview = `<br><img src="/api/documents/${d['شناسه']}/download" style="max-height: 50px; margin-top: 5px; cursor: pointer" onclick="window.open(this.src, '_blank')">`;
+                    }
+
                     const row = `
                         <tr>
-                            <td>${d['عنوان']}</td>
+                            <td>${d['عنوان']} ${preview}</td>
                             <td>${d['دسته_بندی']}</td>
                             <td>${d['تاریخ_سند'] || '-'}</td>
                             <td>${d['تاریخ_ثبت']}</td>
@@ -285,6 +346,25 @@
                 showAlert('خطا در دریافت اطلاعات پرونده', 'danger');
             });
     }
+
+    // Edit Case
+    document.getElementById('edit-case-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        apiFetch(`/api/cases/${CASE_ID}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            const modalEl = document.getElementById('editCaseModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            showAlert('اطلاعات پرونده ویرایش شد.');
+            loadCaseData();
+        }).catch(err => showAlert(err.message, 'danger'));
+    });
 
     // Add Owner
     document.getElementById('add-owner-form').addEventListener('submit', function(e) {

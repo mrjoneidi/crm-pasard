@@ -47,11 +47,16 @@ def upload_document():
     if not case:
         return jsonify({'error': 'Case not found'}), 404
 
-    file_path = save_file(file)
+    title = request.form.get('title', file.filename)
+
+    # Construct filename: CaseNum-ClassNum-Title
+    case_num = case.case_number
+    class_num = case.classification_number or "NoClass"
+    custom_filename = f"{case_num}-{class_num}-{title}"
+
+    file_path = save_file(file, custom_name=custom_filename)
     if not file_path:
          return jsonify({'error': 'File save failed'}), 500
-
-    title = request.form.get('title', file.filename)
     description = request.form.get('description')
     category = request.form.get('category')
 

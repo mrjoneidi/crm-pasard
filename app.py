@@ -41,8 +41,5 @@ def create_app(config_class=Config):
 
 if __name__ == '__main__':
     app = create_app()
-    with app.app_context():
-        from modules.db import db
-        db.create_all()
-        print("Database initialized.")
+    # Database management is handled via manage.py
     app.run(debug=True, port=5000)

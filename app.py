@@ -21,6 +21,10 @@ def create_app(config_class=Config):
     from modules.audit import register_audit_listeners
     register_audit_listeners()
 
+    # Setup Logging
+    from modules.logger import setup_logger
+    setup_logger(app)
+
     # Register Blueprints
     from api.cases.routes import cases_bp
     app.register_blueprint(cases_bp, url_prefix='/api/cases')

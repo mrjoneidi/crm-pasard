@@ -5,13 +5,33 @@ from flask import current_app
 from datetime import datetime, date
 import jdatetime
 
-def save_file(file):
+def save_file(file, custom_name=None):
     if not file:
         return None
 
-    filename = f"{uuid.uuid4()}_{file.filename}"
+    if custom_name:
+        # Get extension
+        ext = os.path.splitext(file.filename)[1]
+        # Sanitize name - simple replace
+        safe_name = "".join(x for x in custom_name if x.isalnum() or x in "._- ")
+        filename = f"{safe_name}{ext}"
+    else:
+        filename = f"{uuid.uuid4()}_{file.filename}"
+
+    # Ensure unique if conflict? For now, overwrite or append UUID if critical.
+    # User requested specific format: CaseNum-ClassNum-Title.ext
+    # If duplicates exist, maybe append timestamp?
     upload_folder = current_app.config['UPLOAD_FOLDER']
     file_path = os.path.join(upload_folder, filename)
+
+    # Avoid overwrite by appending counter if exists
+    base, extension = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(file_path):
+        filename = f"{base}_{counter}{extension}"
+        file_path = os.path.join(upload_folder, filename)
+        counter += 1
+
     file.save(file_path)
     return filename # Return relative path for DB
 

@@ -4,16 +4,20 @@ A production-ready CRM system for a real estate registry office, built with Pyth
 
 ## Key Features
 
-*   **Persian Language Support:** All database columns and API fields are in Persian.
+*   **Persian Language Support:** All database columns, API fields, and Date inputs are in Persian (Jalali).
 *   **Case Management:** Create, update, search, and archive cases.
     *   **Fields:** Case Number, Classification Number, Status, Full Address, Description.
     *   **Owner Info:** Full Name, National ID, Mobile Phone, Alternative Phone.
-    *   **Ownership History:** Track changes in ownership with dates.
+    *   **Ownership History:** Track changes in ownership with Jalali dates.
+    *   **Editing:** Update case details via the UI.
 *   **Document Management:** Upload and manage unlimited documents per case.
-    *   **File Types:** Photos, Contracts, Maps, Permits.
-    *   **Metadata:** Title, Category, Registration Date, Document Date.
+    *   **File Naming:** Files are automatically renamed to `{CaseNum}-{ClassNum}-{Title}.{ext}`.
+    *   **Preview:** Image files can be previewed directly in the browser.
+    *   **Metadata:** Title, Category, Registration Date, Document Date (Jalali).
 *   **Subdivision (Tafkik):** Create sub-cases from parent cases with document transfer.
-*   **Audit Trail:** Full history logging of all changes.
+*   **Audit Trail & Logging:**
+    *   **Audit Logs:** Database records of changes.
+    *   **API Logs:** Requests logged to `app.log` and console.
 *   **Rent & Invoicing:** Manage lease contracts and automatically generate invoices.
 *   **Swagger API Docs:** Interactive API documentation.
 
@@ -93,7 +97,7 @@ Running with Docker ensures a consistent environment and automatic restarts.
 *   `app.py`: Application entry point.
 *   `manage.py`: Database management script.
 *   `config.py`: Configuration settings.
-*   `modules/`: Reusable core modules (Models, Schemas, DB).
+*   `modules/`: Reusable core modules (Models, Schemas, DB, Logger, Utils).
 *   `api/`: API Blueprints (Cases, Documents, Contracts).
 *   `templates/`: HTML templates for the UI.
 *   `static/`: CSS/JS files.

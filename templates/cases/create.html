@@ -5,12 +5,14 @@
     <h1 class="h2">ایجاد پرونده جدید</h1>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form id="create-case-form">
+<form id="create-case-form" enctype="multipart/form-data">
+    <!-- Case Information -->
+    <div class="card mb-3">
+        <div class="card-header">مشخصات پرونده</div>
+        <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-4">
-                    <label class="form-label">شماره پرونده</label>
+                    <label class="form-label">شماره پرونده <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="شماره_پرونده" required>
                 </div>
                 <div class="col-md-4">
@@ -27,9 +29,21 @@
                     </select>
                 </div>
             </div>
+            <div class="mb-3">
+                <label class="form-label">آدرس کامل ملک</label>
+                <input type="text" class="form-control" name="آدرس">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">توضیحات تکمیلی</label>
+                <textarea class="form-control" name="توضیحات" rows="3"></textarea>
+            </div>
+        </div>
+    </div>
 
-            <hr>
-            <h5 class="mb-3">مشخصات هویتی مالک (اختیاری)</h5>
+    <!-- Owner Information -->
+    <div class="card mb-3">
+        <div class="card-header">مشخصات مالک</div>
+        <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label">نام و نام خانوادگی</label>
@@ -68,26 +82,94 @@
                     </div>
                 </div>
             </div>
-            <hr>
-
-            <div class="mb-3">
-                <label class="form-label">آدرس کامل ملک</label>
-                <input type="text" class="form-control" name="آدرس">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">توضیحات تکمیلی</label>
-                <textarea class="form-control" name="توضیحات" rows="3"></textarea>
-            </div>
-
-            <div class="alert alert-info">
-                <strong>توجه:</strong> امکان آپلود اسناد (تصویر، قرارداد، نقشه) پس از ثبت اولیه پرونده در صفحه جزئیات وجود دارد.
-            </div>
-
-            <button type="submit" class="btn btn-primary">ثبت پرونده</button>
-            <a href="/cases" class="btn btn-secondary">بازگشت</a>
-        </form>
+        </div>
     </div>
-</div>
+
+    <!-- Lease Contract Information -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>اطلاعات قرارداد اجاره (اختیاری)</span>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="has_contract_switch" name="has_contract" onchange="toggleContractSection()">
+                <label class="form-check-label" for="has_contract_switch">فعال‌سازی</label>
+            </div>
+        </div>
+        <div class="card-body d-none" id="contract-section">
+            <h6 class="mb-3 text-muted">مشخصات مستاجر</h6>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">نام مستاجر <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="tenant_name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">کد ملی مستاجر <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="tenant_national_id">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">تلفن مستاجر</label>
+                    <input type="text" class="form-control" name="tenant_phone">
+                </div>
+            </div>
+            <h6 class="mb-3 text-muted">شرایط قرارداد</h6>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">تاریخ شروع</label>
+                    <input type="text" class="form-control" name="contract_start_date" placeholder="1402/01/01">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">تاریخ پایان</label>
+                    <input type="text" class="form-control" name="contract_end_date" placeholder="1402/12/29">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">مبلغ اجاره پایه</label>
+                    <input type="number" class="form-control" name="contract_base_rent">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">دوره پرداخت</label>
+                    <select class="form-select" name="contract_payment_period">
+                        <option value="monthly">ماهانه</option>
+                        <option value="quarterly">سه‌ماهه</option>
+                        <option value="yearly">سالانه</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>اسناد و مدارک</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDocumentRow()">
+                <i data-feather="plus"></i> افزودن سند
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="documents-table">
+                    <thead>
+                        <tr>
+                            <th>عنوان سند <span class="text-danger">*</span></th>
+                            <th>دسته‌بندی</th>
+                            <th>فایل <span class="text-danger">*</span></th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic rows -->
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small">هیچ سندی اضافه نشده است.</p>
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <button type="submit" class="btn btn-primary btn-lg">ثبت پرونده</button>
+        <a href="/cases" class="btn btn-secondary btn-lg ms-2">انصراف</a>
+    </div>
+</form>
+
 {% endblock %}
 
 {% block scripts %}
@@ -101,15 +183,71 @@
         }
     }
 
+    function toggleContractSection() {
+        const isChecked = document.getElementById('has_contract_switch').checked;
+        const section = document.getElementById('contract-section');
+        if (isChecked) {
+            section.classList.remove('d-none');
+        } else {
+            section.classList.add('d-none');
+        }
+    }
+
+    function addDocumentRow() {
+        const tbody = document.querySelector('#documents-table tbody');
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>
+                <input type="text" class="form-control" name="doc_titles" required placeholder="عنوان سند">
+            </td>
+            <td>
+                <select class="form-select" name="doc_categories">
+                    <option value="Deed">سند مالکیت</option>
+                    <option value="Contract">قرارداد</option>
+                    <option value="Map">نقشه</option>
+                    <option value="Correspondence">مکاتبات</option>
+                    <option value="Other">سایر</option>
+                </select>
+            </td>
+            <td>
+                <input type="file" class="form-control" name="documents" required>
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()">حذف</button>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+
+        // Remove empty message if exists
+        const msg = document.querySelector('#documents-table').closest('.card-body').querySelector('p');
+        if (msg) msg.style.display = 'none';
+    }
+
     document.getElementById('create-case-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+        const form = e.target;
+
+        // Basic validation for contract fields if enabled
+        if (document.getElementById('has_contract_switch').checked) {
+            const tName = form.querySelector('[name="tenant_name"]').value;
+            const tId = form.querySelector('[name="tenant_national_id"]').value;
+            if (!tName || !tId) {
+                showAlert('لطفاً نام و کد ملی مستاجر را وارد کنید.', 'warning');
+                return;
+            }
+        }
+
+        const formData = new FormData(form);
+
+        // Ensure switch value is sent correctly if not checked (checkboxes only send if checked)
+        // Actually, logic is: if checked, send 'on'. Backend checks for 'on'.
+        // If not checked, it's missing. Backend defaults to False/None.
 
         apiFetch('/api/cases/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: formData
         })
         .then(res => {
             showAlert('پرونده با موفقیت ایجاد شد.');

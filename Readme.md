@@ -9,8 +9,10 @@ A production-ready CRM system for a real estate registry office, built with Pyth
     *   **Fields:** Case Number, Classification Number, Status, Full Address, Description.
     *   **Owner Info:** Full Name, National ID, Mobile Phone, Alternative Phone.
     *   **Ownership History:** Track changes in ownership with Jalali dates.
+    *   **Lease Contracts:** Create and view lease contracts directly within case management.
     *   **Editing:** Update case details via the UI.
 *   **Document Management:** Upload and manage unlimited documents per case.
+    *   **Bulk Upload:** Add multiple documents with titles and categories during case creation.
     *   **File Naming:** Files are automatically renamed to `{CaseNum}-{ClassNum}-{Title}.{ext}`.
     *   **Preview:** Image files can be previewed directly in the browser.
     *   **Metadata:** Title, Category, Registration Date, Document Date (Jalali).

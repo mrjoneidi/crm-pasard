@@ -75,6 +75,7 @@ class CaseSchema(ma.SQLAlchemyAutoSchema):
     documents = fields.Nested(DocumentSchema, many=True, dump_only=True, data_key='اسناد')
     ownerships = fields.Nested(OwnershipSchema, many=True, dump_only=True, data_key='سوابق_مالکیت')
     children = fields.Nested('CaseSchema', many=True, dump_only=True, data_key='زیر_پرونده_ها')
+    contracts = fields.Nested('LeaseContractSchema', many=True, dump_only=True, data_key='قراردادها')
 
 class AuditLogSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

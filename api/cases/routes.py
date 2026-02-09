@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from modules.db import db
-from modules.models import Case, Person, Ownership, Document
+from modules.models import Case, Person, Ownership, Document, LeaseContract
 from modules.schemas import CaseSchema, PersonSchema, OwnershipSchema
-from modules.utils import jalali_to_gregorian
+from modules.utils import jalali_to_gregorian, save_file
 from sqlalchemy import or_
 from datetime import datetime
 
@@ -47,9 +47,12 @@ def create_case():
       400:
         description: Error creating case
     """
-    data = request.get_json()
+    if request.content_type and request.content_type.startswith('multipart/form-data'):
+        data = request.form.to_dict()
+    else:
+        data = request.get_json()
 
-    # Extract owner data before validation as it's not part of Case model
+    # Extract owner data
     owner_name = data.pop('owner_name', None)
     owner_national_id = data.pop('owner_national_id', None)
     owner_phone = data.pop('owner_phone', None)
@@ -58,9 +61,25 @@ def create_case():
     # Ownership dates (Jalali)
     owner_start_date_str = data.pop('owner_start_date', None)
     owner_end_date_str = data.pop('owner_end_date', None)
-    is_current_owner = data.pop('is_current_owner', True) # Default to true if not specified
-    if is_current_owner == 'on': # HTML checkbox returns 'on'
+    is_current_owner = data.pop('is_current_owner', True)
+    if is_current_owner == 'on' or is_current_owner == 'true':
          is_current_owner = True
+
+    # Extract contract data
+    has_contract = data.pop('has_contract', None)
+    tenant_name = data.pop('tenant_name', None)
+    tenant_national_id = data.pop('tenant_national_id', None)
+    tenant_phone = data.pop('tenant_phone', None)
+    contract_start_str = data.pop('contract_start_date', None)
+    contract_end_str = data.pop('contract_end_date', None)
+    contract_rent = data.pop('contract_base_rent', None)
+    contract_period = data.pop('contract_payment_period', None)
+
+    # Cleanup extra fields that are not part of Case model
+    # These might be present in form data
+    data.pop('doc_titles', None)
+    data.pop('doc_categories', None)
+    data.pop('documents', None) # Just in case
 
     try:
         new_case = case_schema.load(data, session=db.session)
@@ -83,7 +102,6 @@ def create_case():
             start_date = jalali_to_gregorian(owner_start_date_str) if owner_start_date_str else datetime.utcnow().date()
             end_date = jalali_to_gregorian(owner_end_date_str) if owner_end_date_str else None
 
-            # If explicit end date provided, ensure is_current matches logic
             if end_date:
                  is_current_owner = False
 
@@ -96,10 +114,67 @@ def create_case():
             )
             db.session.add(ownership)
 
+        # Handle Contract
+        if has_contract and tenant_national_id:
+            tenant = Person.query.filter_by(national_id=tenant_national_id).first()
+            if not tenant:
+                tenant = Person(
+                    full_name=tenant_name,
+                    national_id=tenant_national_id,
+                    phone=tenant_phone
+                )
+                db.session.add(tenant)
+                db.session.flush()
+
+            c_start = jalali_to_gregorian(contract_start_str) if contract_start_str else datetime.utcnow().date()
+            c_end = jalali_to_gregorian(contract_end_str) if contract_end_str else datetime.utcnow().date()
+
+            contract = LeaseContract(
+                case_id=new_case.id,
+                tenant_id=tenant.id,
+                start_date=c_start,
+                end_date=c_end,
+                base_rent=float(contract_rent) if contract_rent else 0,
+                payment_period=contract_period
+            )
+            db.session.add(contract)
+
+        # Handle Documents
+        if request.files:
+            # files = request.files.getlist('documents[]') # For FormData
+            # titles = request.form.getlist('doc_titles[]')
+            # categories = request.form.getlist('doc_categories[]')
+
+            # Since FormData append works by key, getting lists works if multiple items have same key.
+            # However, mapping file to title requires order preservation which getlist usually does.
+
+            files = request.files.getlist('documents') # The key used in verify script
+            titles = request.form.getlist('doc_titles')
+            categories = request.form.getlist('doc_categories')
+
+            # Fallback for JS FormData array naming convention documents[i][file] which is harder to parse with getlist directly
+            # The plan assumes we use simple arrays: documents[], doc_titles[], doc_categories[]
+
+            for i, file in enumerate(files):
+                if file and file.filename:
+                    filename = save_file(file)
+                    title = titles[i] if i < len(titles) else file.filename
+                    category = categories[i] if i < len(categories) else 'Other'
+
+                    doc = Document(
+                        case_id=new_case.id,
+                        title=title,
+                        file_path=filename,
+                        category=category
+                    )
+                    db.session.add(doc)
+
         db.session.commit()
         return case_schema.dump(new_case), 201
     except Exception as e:
         db.session.rollback()
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 400
 
 @cases_bp.route('/', methods=['GET'])

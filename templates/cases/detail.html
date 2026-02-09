@@ -29,6 +29,9 @@
         <button class="nav-link active" id="owners-tab" data-bs-toggle="tab" data-bs-target="#owners" type="button" role="tab">مالکین</button>
     </li>
     <li class="nav-item">
+        <button class="nav-link" id="contracts-tab" data-bs-toggle="tab" data-bs-target="#contracts" type="button" role="tab">قراردادها</button>
+    </li>
+    <li class="nav-item">
         <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">اسناد</button>
     </li>
     <li class="nav-item">
@@ -54,6 +57,25 @@
             </thead>
             <tbody id="owners-table-body"></tbody>
         </table>
+    </div>
+
+    <!-- Contracts Tab -->
+    <div class="tab-pane fade p-3 bg-white border border-top-0" id="contracts" role="tabpanel">
+        <!-- Currently no "Add Contract" button here as prompt emphasized adding during case creation, but could add later -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>مستاجر</th>
+                    <th>کد ملی</th>
+                    <th>تاریخ شروع</th>
+                    <th>تاریخ پایان</th>
+                    <th>مبلغ اجاره</th>
+                    <th>دوره پرداخت</th>
+                </tr>
+            </thead>
+            <tbody id="contracts-table-body"></tbody>
+        </table>
+        <p class="text-muted small" id="no-contracts-msg" style="display:none;">قراردادی ثبت نشده است.</p>
     </div>
 
     <!-- Documents Tab -->
@@ -203,6 +225,7 @@
                             <option value="Deed">سند مالکیت</option>
                             <option value="Contract">قرارداد</option>
                             <option value="Map">نقشه</option>
+                            <option value="Correspondence">مکاتبات</option>
                             <option value="Other">سایر</option>
                         </select>
                     </div>
@@ -292,6 +315,28 @@
                         `;
                         ownersBody.innerHTML += row;
                     });
+                }
+
+                // Contracts
+                const contractsBody = document.getElementById('contracts-table-body');
+                contractsBody.innerHTML = '';
+                if (data['قراردادها'] && data['قراردادها'].length > 0) {
+                    document.getElementById('no-contracts-msg').style.display = 'none';
+                    data['قراردادها'].forEach(c => {
+                        const row = `
+                            <tr>
+                                <td>${c['مستاجر'] ? c['مستاجر']['نام_و_نام_خانوادگی'] : '-'}</td>
+                                <td>${c['مستاجر'] ? c['مستاجر']['کد_ملی'] : '-'}</td>
+                                <td>${c['تاریخ_شروع']}</td>
+                                <td>${c['تاریخ_پایان']}</td>
+                                <td>${c['مبلغ_اجاره_پایه'].toLocaleString()}</td>
+                                <td>${c['دوره_پرداخت']}</td>
+                            </tr>
+                        `;
+                        contractsBody.innerHTML += row;
+                    });
+                } else {
+                    document.getElementById('no-contracts-msg').style.display = 'block';
                 }
 
                 // Documents

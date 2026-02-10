@@ -2,9 +2,10 @@ from flask import Blueprint, request, jsonify
 from modules.db import db
 from modules.models import Case, Person, Ownership, Document, LeaseContract
 from modules.schemas import CaseSchema, PersonSchema, OwnershipSchema
-from modules.utils import jalali_to_gregorian, save_file
+from modules.utils import jalali_to_gregorian, save_file, get_shamsi_timestamp_now
 from sqlalchemy import or_
 from datetime import datetime
+import jdatetime
 
 cases_bp = Blueprint('cases', __name__)
 
@@ -79,6 +80,7 @@ def create_case():
     # These might be present in form data
     data.pop('doc_titles', None)
     data.pop('doc_categories', None)
+    data.pop('doc_descriptions', None)
     data.pop('documents', None) # Just in case
 
     try:
@@ -99,7 +101,7 @@ def create_case():
                 db.session.add(person)
                 db.session.flush()
 
-            start_date = jalali_to_gregorian(owner_start_date_str) if owner_start_date_str else datetime.utcnow().date()
+            start_date = jalali_to_gregorian(owner_start_date_str) if owner_start_date_str else jdatetime.date.today().togregorian()
             end_date = jalali_to_gregorian(owner_end_date_str) if owner_end_date_str else None
 
             if end_date:
@@ -151,19 +153,27 @@ def create_case():
             files = request.files.getlist('documents') # The key used in verify script
             titles = request.form.getlist('doc_titles')
             categories = request.form.getlist('doc_categories')
+            descriptions = request.form.getlist('doc_descriptions')
 
             # Fallback for JS FormData array naming convention documents[i][file] which is harder to parse with getlist directly
             # The plan assumes we use simple arrays: documents[], doc_titles[], doc_categories[]
 
             for i, file in enumerate(files):
                 if file and file.filename:
-                    filename = save_file(file)
                     title = titles[i] if i < len(titles) else file.filename
                     category = categories[i] if i < len(categories) else 'Other'
+                    description = descriptions[i] if i < len(descriptions) else None
+
+                    # Generate custom filename
+                    shamsi_ts = get_shamsi_timestamp_now()
+                    custom_name = f"{new_case.case_number}_{title}_{shamsi_ts}"
+
+                    filename = save_file(file, custom_name=custom_name)
 
                     doc = Document(
                         case_id=new_case.id,
                         title=title,
+                        description=description,
                         file_path=filename,
                         category=category
                     )

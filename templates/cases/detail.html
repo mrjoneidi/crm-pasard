@@ -86,6 +86,7 @@
                 <tr>
                     <th>عنوان</th>
                     <th>دسته‌بندی</th>
+                    <th>توضیحات</th>
                     <th>تاریخ سند</th>
                     <th>تاریخ ثبت</th>
                     <th>عملیات</th>
@@ -355,8 +356,9 @@
                         <tr>
                             <td>${d['عنوان']} ${preview}</td>
                             <td>${d['دسته_بندی']}</td>
+                            <td>${d['توضیحات'] || '-'}</td>
                             <td>${d['تاریخ_سند'] || '-'}</td>
-                            <td>${d['تاریخ_ثبت']}</td>
+                            <td>${d['تاریخ_ثبت_شمسی'] || d['تاریخ_ثبت']}</td>
                             <td>
                                 <a href="/api/documents/${d['شناسه']}/download" class="btn btn-sm btn-outline-primary" target="_blank">دانلود</a>
                             </td>

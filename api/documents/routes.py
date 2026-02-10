@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from modules.db import db
 from modules.models import Document, Case
 from modules.schemas import DocumentSchema
-from modules.utils import save_file, jalali_to_gregorian
+from modules.utils import save_file, jalali_to_gregorian, get_shamsi_timestamp_now
 import os
 from datetime import datetime
 
@@ -49,10 +49,9 @@ def upload_document():
 
     title = request.form.get('title', file.filename)
 
-    # Construct filename: CaseNum-ClassNum-Title
-    case_num = case.case_number
-    class_num = case.classification_number or "NoClass"
-    custom_filename = f"{case_num}-{class_num}-{title}"
+    # Construct filename: CaseNum_Title_ShamsiTimestamp
+    shamsi_ts = get_shamsi_timestamp_now()
+    custom_filename = f"{case.case_number}_{title}_{shamsi_ts}"
 
     file_path = save_file(file, custom_name=custom_filename)
     if not file_path:

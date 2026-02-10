@@ -1,7 +1,7 @@
 from modules.db import ma
 from modules.models import Case, Person, Ownership, Document, AuditLog, LeaseContract, Invoice
 from marshmallow import fields, pre_load, post_dump
-from modules.utils import gregorian_to_jalali, jalali_to_gregorian
+from modules.utils import gregorian_to_jalali, jalali_to_gregorian, gregorian_datetime_to_jalali_str
 
 class JalaliDateField(fields.Field):
     """Custom field to handle Jalali dates."""
@@ -55,7 +55,11 @@ class DocumentSchema(ma.SQLAlchemyAutoSchema):
     file_path = fields.Str(data_key='مسیر_فایل')
     category = fields.Str(data_key='دسته_بندی')
     created_at = fields.DateTime(data_key='تاریخ_ثبت')
+    created_at_shamsi = fields.Method("get_created_at_shamsi", data_key='تاریخ_ثبت_شمسی')
     document_date = JalaliDateField(data_key='تاریخ_سند', allow_none=True)
+
+    def get_created_at_shamsi(self, obj):
+        return gregorian_datetime_to_jalali_str(obj.created_at)
 
 class CaseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

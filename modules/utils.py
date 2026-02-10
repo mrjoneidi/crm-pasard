@@ -42,6 +42,18 @@ def gregorian_to_jalali(date_obj):
     j_date = jdatetime.date.fromgregorian(date=date_obj)
     return j_date.strftime('%Y/%m/%d')
 
+def gregorian_datetime_to_jalali_str(dt_obj):
+    """Converts a Gregorian datetime object to a Jalali string (YYYY/MM/DD HH:MM)."""
+    if not dt_obj:
+        return None
+    j_dt = jdatetime.datetime.fromgregorian(datetime=dt_obj)
+    return j_dt.strftime('%Y/%m/%d %H:%M')
+
+def get_shamsi_timestamp_now():
+    """Returns the current Shamsi timestamp as a string (YYYY-MM-DD_HH-MM-SS) for file naming."""
+    j_now = jdatetime.datetime.now()
+    return j_now.strftime('%Y-%m-%d_%H-%M-%S')
+
 def jalali_to_gregorian(jalali_str):
     """Converts a Jalali date string (YYYY/MM/DD or YYYY-MM-DD) to a Gregorian date object."""
     if not jalali_str:

@@ -310,6 +310,11 @@ def add_owner(case_id):
     start_date = jalali_to_gregorian(start_date_str) if start_date_str else datetime.utcnow().date()
     end_date = jalali_to_gregorian(end_date_str) if end_date_str else None
 
+    if end_date:
+        is_current = False
+    else:
+        is_current = True
+
     # Logic: If we are adding a CURRENT owner, we must archive previous current owners.
     # If we are adding a HISTORICAL owner (is_current=False), we don't touch others.
 

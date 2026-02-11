@@ -181,14 +181,8 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">تاریخ پایان (شمسی)</label>
-                            <input type="text" class="form-control" name="end_date" id="modal_end_date" placeholder="1402/12/29" disabled>
+                            <input type="text" class="form-control" name="end_date" id="modal_end_date" placeholder="1402/12/29">
                         </div>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_current" id="modal_is_current" checked onchange="toggleModalEndDate()">
-                        <label class="form-check-label" for="modal_is_current">
-                            همچنان مالک است (مالک فعلی)
-                        </label>
                     </div>
                     <button type="submit" class="btn btn-primary">ثبت</button>
                 </form>
@@ -271,15 +265,6 @@
 <script>
     const CASE_ID = {{ case_id }};
     let currentCaseDocs = [];
-
-    function toggleModalEndDate() {
-        const isCurrent = document.getElementById('modal_is_current').checked;
-        const endDateInput = document.getElementById('modal_end_date');
-        endDateInput.disabled = isCurrent;
-        if (isCurrent) {
-            endDateInput.value = '';
-        }
-    }
 
     function loadCaseData() {
         apiFetch(`/api/cases/${CASE_ID}`)

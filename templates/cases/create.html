@@ -71,15 +71,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">تاریخ پایان مالکیت (شمسی)</label>
-                    <input type="text" class="form-control" name="owner_end_date" id="owner_end_date" placeholder="1402/12/29" disabled>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="is_current_owner" id="is_current_owner" checked onchange="toggleEndDate()">
-                        <label class="form-check-label" for="is_current_owner">
-                            همچنان مالک است (مالک فعلی)
-                        </label>
-                    </div>
+                    <input type="text" class="form-control" name="owner_end_date" id="owner_end_date" placeholder="1402/12/29">
                 </div>
             </div>
         </div>
@@ -175,15 +167,6 @@
 
 {% block scripts %}
 <script>
-    function toggleEndDate() {
-        const isCurrent = document.getElementById('is_current_owner').checked;
-        const endDateInput = document.getElementById('owner_end_date');
-        endDateInput.disabled = isCurrent;
-        if (isCurrent) {
-            endDateInput.value = '';
-        }
-    }
-
     function toggleContractSection() {
         const isChecked = document.getElementById('has_contract_switch').checked;
         const section = document.getElementById('contract-section');

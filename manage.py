@@ -110,6 +110,9 @@ def create_user():
     """Create a new user."""
     app = create_app()
     with app.app_context():
+        # Ensure tables exist
+        db.create_all()
+
         username = input("Enter username: ")
         password = input("Enter password: ")
 

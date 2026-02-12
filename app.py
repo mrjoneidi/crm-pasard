@@ -1,6 +1,7 @@
 from flask import Flask
 from config import Config
 from flasgger import Swagger
+from flask_login import LoginManager
 import os
 
 def create_app(config_class=Config):
@@ -14,6 +15,15 @@ def create_app(config_class=Config):
     from modules.db import db, ma
     db.init_app(app)
     ma.init_app(app)
+
+    login_manager = LoginManager()
+    login_manager.login_view = 'web.login'
+    login_manager.init_app(app)
+
+    from modules.models import User
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
     swagger = Swagger(app)
 

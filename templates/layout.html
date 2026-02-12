@@ -90,10 +90,14 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <!-- اینجا می‌تونی آیتم‌های بالا اضافه کنی اگر نیاز بود -->
+        {% if current_user.is_authenticated %}
+        <li class="nav-item">
+            <a class="nav-link" href="/logout">خروج</a>
+        </li>
+        {% endif %}
       </ul>
       <span class="navbar-text text-white">
-        کاربر سیستم: مدیر ارشد
+        کاربر سیستم: {{ current_user.username if current_user.is_authenticated else 'مهمان' }}
       </span>
     </div>
   </div>

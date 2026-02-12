@@ -2,6 +2,7 @@ from modules.db import ma
 from modules.models import Case, Person, Ownership, Document, AuditLog, LeaseContract, Invoice
 from marshmallow import fields, pre_load, post_dump
 from modules.utils import gregorian_to_jalali, jalali_to_gregorian, gregorian_datetime_to_jalali_str
+from datetime import datetime
 
 class JalaliDateField(fields.Field):
     """Custom field to handle Jalali dates."""
@@ -38,7 +39,12 @@ class OwnershipSchema(ma.SQLAlchemyAutoSchema):
     person_id = fields.Int(data_key='شناسه_شخص')
     start_date = JalaliDateField(data_key='تاریخ_شروع')
     end_date = JalaliDateField(data_key='تاریخ_پایان', allow_none=True)
-    is_current = fields.Bool(data_key='فعال')
+    is_current = fields.Method("get_is_current", data_key='فعال')
+
+    def get_is_current(self, obj):
+        if obj.end_date:
+            return obj.end_date >= datetime.utcnow().date()
+        return True
 
     person = fields.Nested(PersonSchema, dump_only=True, data_key='مالک')
 

@@ -104,7 +104,7 @@ def create_case():
             start_date = jalali_to_gregorian(owner_start_date_str) if owner_start_date_str else jdatetime.date.today().togregorian()
             end_date = jalali_to_gregorian(owner_end_date_str) if owner_end_date_str else None
 
-            if end_date:
+            if end_date and end_date < datetime.utcnow().date():
                  is_current_owner = False
 
             ownership = Ownership(
@@ -310,7 +310,7 @@ def add_owner(case_id):
     start_date = jalali_to_gregorian(start_date_str) if start_date_str else datetime.utcnow().date()
     end_date = jalali_to_gregorian(end_date_str) if end_date_str else None
 
-    if end_date:
+    if end_date and end_date < datetime.utcnow().date():
         is_current = False
     else:
         is_current = True

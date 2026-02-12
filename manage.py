@@ -1,7 +1,7 @@
 import sys
 from app import create_app
 from modules.db import db
-from modules.models import Case, Person, Ownership, Document, LeaseContract, Invoice
+from modules.models import Case, Person, Ownership, Document, LeaseContract, Invoice, User
 from faker import Faker
 import random
 from datetime import datetime, timedelta
@@ -106,9 +106,30 @@ def populate_db():
 
         print("Database populated successfully!")
 
+def create_user():
+    """Create a new user."""
+    app = create_app()
+    with app.app_context():
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+
+        if not username or not password:
+            print("Username and password are required.")
+            return
+
+        if User.query.filter_by(username=username).first():
+            print("User already exists.")
+            return
+
+        user = User(username=username)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        print(f"User {username} created successfully.")
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python manage.py [init|drop|populate]")
+        print("Usage: python manage.py [init|drop|populate|create_user]")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -118,5 +139,7 @@ if __name__ == "__main__":
         drop_db()
     elif command == 'populate':
         populate_db()
+    elif command == 'create_user':
+        create_user()
     else:
         print(f"Unknown command: {command}")
